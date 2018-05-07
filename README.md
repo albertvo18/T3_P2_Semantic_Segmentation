@@ -1,15 +1,91 @@
 # UDACITY SELF-DRIVING CAR ENGINEER NANODEGREE
 # Semantic Segmentation Project (Advanced Deep Learning)
 
+
+
 ## Introduction
 
-The goal of this project is to construct a fully convolutional neural network based on the VGG-16 image classifier architecture for performing semantic segmentation to identify drivable road area from an car dashcam image (trained and tested on the KITTI data set).
+In this project, the goal is to label the pixels of a road in images using a Fully Convolutional Network (FCN) based on the VGG-16 image classifier architecture.  Using images from a car dash camera, we perform semantic segmentation to identify the area of scene which represent "drivable" roads vs "non-drivable" areas (not-roads).
+
+
 
 ## Approach
 
+##  Semantic Segmentation
+
+Here are the steps I took to build the Fully Convolutional Network:
+1.  Build the Fully Convolutional Network
+2.  Load the pretrained vgg model
+3.  Learn the correct features from the images.
+4.  Implement function layers
+5.  Optimize the neural network
+6.  Train the neural network
+7.  Print loss of the network while the network is training.
+
 ### Architecture
 
-A pre-trained VGG-16 network was converted to a fully convolutional network by converting the final fully connected layer to a 1x1 convolution and setting the depth equal to the number of desired classes (in this case, two: road and not-road). Performance is improved through the use of skip connections, performing 1x1 convolutions on previous VGG layers (in this case, layers 3 and 4) and adding them element-wise to upsampled (through transposed convolution) lower-level layers (i.e. the 1x1-convolved layer 7 is upsampled before being added to the 1x1-convolved layer 4). Each convolution and transpose convolution layer includes a kernel initializer and regularizer
+
+First, we convert a pre-trained VGG-16 network to a fully convolutional network.
+We replace the final fully connected layer to a 1x1 convolution.
+Next we set the depth equal to number of desired classes = 2 (road and not-road). 
+
+We add skip connections and 1x1 convolutions on previous VGG layers (layers 3 and 4).
+Then we upsample using transposed convolution. (Upsample 1x1-convolved layer 7 then add to the 1x1-convolved layer 4). 
+
+We use a kernel initializer and regularizer on each convolution and transpose convolution layer.
+
+
+Here are some additional details about the Fully Convolution Networks:
+Structurally an FCN is usually comprised of two parts:  encoder and decoder
+The encoder is a series of convolutional layers like VGG and ResNet.
+The goal of the encoder is to extract features from the image.
+The decoder up-scales the output of the encoder such that it's the same
+size as the original image.  This results in segmentation or prediction
+of each individual pixel in the original image.
+
+1.  Replace fully connected layers with 1x1 convolutional layers
+When you use a 1x1 convolution, the output tensor will remain 4D instead of flattening to 2D
+so spatial information will be preserved.
+
+2.  Upsampling through use of transposed convolutional layers
+Tranposed convolution is essentially a reverse convolution in which the
+forward and backward passes are swapped.
+Also, known as deconvolution because it undoes previous convolution.
+
+3.  Skip connections
+Skip connections allow network to use information from multiple resolution scales.
+As a result the network is able to make more precise segmentation decisions
+
+Skip connections are way of retaining information that would be normally be lost in CNNs.
+The way that skip connections work is by connecting the output of one layer to
+a non-adjacent layer.
+
+## Notes
+The link for the frozen VGG16 model is hardcoded into helper.py. 
+The model is not vanilla VGG16, but a fully convolutional version, which already contains the 1x1 convolutions to replace the fully connected layers. 
+The original FCN-8s was trained in stages. The authors later uploaded a version that was trained all at once to their GitHub repo. The version in the GitHub repo has one important difference: The outputs of pooling layers 3 and 4 are scaled before they are fed into the 1x1 convolutions. As a result, some students have found that the model learns much better with the scaling layers included. The model may not converge substantially faster, but may reach a higher IoU and accuracy.
+When adding l2-regularization, setting a regularizer in the arguments of the tf.layers is not enough. Regularization loss terms must be manually added to your loss function. otherwise regularization is not implemented.
+
+### Dataset
+1.  Download Kitti Road dataset. 
+2.  Extract the dataset in the data folder. 
+This will create the folder data_road with all the training and test images.
+
+### Implementation
+
+I implemented the code in the main.py module indicated by the comments with "TODO" tags. 
+The comments indicated with "OPTIONAL" tag are not required to complete.
+
+
+### Run
+Run the following command to run the project:
+python main.py
+
+
+## Neural Network Training
+
+Here is how I trained the model.
+
 
 ### Optimizer
 
@@ -19,29 +95,34 @@ The loss function for the network is cross-entropy, and an Adam optimizer is use
 
 The hyperparameters used for training are:
 
-  - keep_prob: 0.5
-  - learning_rate: 0.0009
-  - epochs: 50
-  - batch_size: 5
+  - keep_prob: 0.8
+  - learning_rate: 0.0001
+  - epochs: 12
+  - batch_size: 8
 
 ## Results
+Over time, the model decreases loss.
 
-Loss per batch tends to average below 0.200 after two epochs and below 0.100 after ten epochs. Average loss per batch at epoch 20: 0.054, at epoch 30: 0.072, at epoch 40: 0.037, and at epoch 50: 0.031.
+Loss per batch tends to average 0.105 after 5 epochs 
+and around 0.052 after 12 epochs. 
+4.  Does the project correctly label the road?
+5.  The project labels most pixels of roads close to the best solution. The model doesn't have to predict correctly all the images, just most of them.
+6.  A solution that is close to best would label at least 80% of the road and label no more than 20% of non-road pixels as road.
 
 ### Samples
+The overall results are good, however, there are certain images where the segmantic segmentation is spotty.
 
 Below are a few sample images from the output of the fully convolutional network, with the segmentation class overlaid upon the original image in green.
 
-![sample1](./sample1.png)
-![sample2](./sample2.png)
-![sample3](./sample3.png)
-![sample4](./sample4.png)
-![sample5](./sample5.png)
-![sample6](./sample6.png)
-![sample7](./sample7.png)
-![sample8](./sample8.png)
+![out1](./out1.png)
+![out2](./out2.png)
+![out3](./out3.png)
 
-Performance is very good, but not perfect with only spots of road identified in a handful of images.
+
+
+
+
+
 
 
 ---
